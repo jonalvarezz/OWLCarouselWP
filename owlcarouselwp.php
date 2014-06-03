@@ -3,7 +3,7 @@
  * Plugin Name: OWL Carousel WP
  * Plugin URI: http://github.com/jonalvarezz/OWLCarouselWP
  * Description: Touch enabled jQuery plugin that lets you create beautiful responsive carousel slider.
- * Version: 0.3
+ * Version: 0.4
  * Author: Jonathan Álvarez González
  * Author URI: http://jonalvarezz.com
  * Requires at least: 3.8
@@ -68,6 +68,9 @@ if ( ! class_exists( 'OWLCarouselWP' ) ) :
 
 			// Save post fields
 			add_action( 'save_post', array( $this, 'save' ) );
+
+			add_action( 'wp_enqueue_scripts', array( $this, 'print_scripts_and_styles') );
+
 		}
 
 
@@ -232,6 +235,23 @@ if ( ! class_exists( 'OWLCarouselWP' ) ) :
 			update_post_meta( $post_id, '_owlcwp_image_desc_value_key', $img_desc );
 		}
 
+		/**
+		 * Enqueue scrips
+		 *
+		 * @since 0.4
+		 */
+		public function print_scripts_and_styles() {
+			// Enqueue the styles'n'scripts only in the front page
+			if( !is_front_page() )
+				return;
+
+			wp_register_script( 'owlcarouselwp_script', $this->plugin_url() . '/js/owlcarouselwp.min.js', array('jquery'), '1.3.3', true );
+			wp_register_style( 'owlcarouselwp_style', $this->plugin_url() . '/css/owlcarouselwp.min.css', false, '1.3.3' );
+			
+			wp_enqueue_script( 'owlcarouselwp_script' );
+			wp_enqueue_style( 'owlcarouselwp_style' );
+		}
+
 		/** 
 		* ==================================
 		* Helper functions
@@ -271,5 +291,44 @@ endif ;
 function OWLCplz() {
 	return OWLCarouselWP::instance();
 }
-
 OWLCplz();
+
+/**
+ * Render the slides
+ *
+ * @since  0.4
+ */
+function slide_render() {
+
+	$query = new WP_Query( array(
+			'post_type' => 'slide'
+		)
+	);
+
+	if( $query->have_posts() ) :
+
+		?> <figure id="owlcarouselwp" class="owl-carousel center-text"> <?php
+		
+		while( $query->have_posts() ) :
+			$query->the_post();
+
+			// Fetch values
+			$meta 				= get_post_meta( get_the_ID() );
+			$link 				= $meta['_owlcwp_link_to_value_key'][0];
+			$open_in_new_tab 	= $meta['_owlcwp_link_in_new_tab_value_key'][0];
+			$img_desc 			= $meta['_owlcwp_image_desc_value_key'][0];
+			$img_url 			= wp_get_attachment_image_src(get_post_thumbnail_id(get_the_ID()), get_post_type());
+
+			?>
+				<div>
+					<?php if( $link ) : ?> <a href="<?php echo $link ?>" title="<?php the_title(); ?>" target="<?php echo ($open_in_new_tab) ? '_blank' : '_self'; ?>"> <?php endif ; ?>
+						<img src="<?php echo $img_url[0]; ?>" alt="<?php echo $img_desc; ?>">
+						<figcaption class="screen-reader-text"><?php echo $img_desc; ?></figcaption>
+					<?php if( $link ) : ?> </a> <?php endif ; ?>
+				</div>
+			<?php
+		endwhile ;
+
+		?> </figure> <?php
+	endif ;
+}

@@ -69,6 +69,10 @@ if ( ! class_exists( 'OWLCarouselWP' ) ) :
 			// Save post fields
 			add_action( 'save_post', array( $this, 'save' ) );
 
+			// Add menu icon to dashboard
+			add_action( 'admin_head', array( $this, 'add_menu_icons_styles' ) );
+
+			// Frontend scripts
 			add_action( 'wp_enqueue_scripts', array( $this, 'print_scripts_and_styles') );
 
 		}
@@ -109,7 +113,7 @@ if ( ! class_exists( 'OWLCarouselWP' ) ) :
 				'show_in_nav_menus'   => false,
 				'show_in_admin_bar'   => false,
 				'menu_position'       => 20,
-				'menu_icon'           => $this->plugin_url() . '/img/owl-logo-16.png',
+				'menu_icon'           => 'dashicons-slides',
 				'can_export'          => true,
 				'has_archive'         => true,
 				'exclude_from_search' => false,
@@ -250,6 +254,16 @@ if ( ! class_exists( 'OWLCarouselWP' ) ) :
 			
 			wp_enqueue_script( 'owlcarouselwp_script' );
 			wp_enqueue_style( 'owlcarouselwp_style' );
+		}
+
+		public function add_menu_icons_styles() {
+			?>
+				<style>
+				#adminmenu .menu-icon-events div.wp-menu-image:before {
+				  content: "\f181";
+				}
+				</style>
+			<?php
 		}
 
 		/** 
